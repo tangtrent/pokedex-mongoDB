@@ -1,40 +1,108 @@
 import React from 'react';
+import PokemonList from './PokemonList.jsx';
+import TypesList from './TypesList.jsx';
+import axios from 'axios';
 
-const App = () => (
-  <div>
-    <div>
-      <h1>Pokemon!</h1>
-      <button>Show All</button>
-      <select id="type">
-        <option>Sort by Type</option>
-        <option>Grass</option>
-        <option>Fire</option>
-        <option>Water</option>
-        <option>Normal</option>
-        <option>Poison</option>
-        <option>Electric</option>
-        <option>Ground</option>
-        <option>Fighting</option>
-        <option>Psychic</option>
-        <option>Rock</option>
-        <option>Ghost</option>
-        <option>Dragon</option>
-      </select>
-      <button>INSERT</button>
+class App extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      pokemonList: [],
+      chosenType: '',
+      nameInput: '',
+      typeInput: '',
+      imgInput: ''
+    }
+    this.typeFilter = this.typeFilter.bind(this);
+    this.getAllPokemon = this.getAllPokemon.bind(this);
+    this.onNameInput = this.onNameInput.bind(this);
+    this.onTypeInput = this.onTypeInput.bind(this);
+    this.onImageInput = this.onImageInput.bind(this);
+    this.onInsert = this.onInsert.bind(this);
+  }
+
+  componentDidMount() {
+    this.getAllPokemon();
+  }
+
+  getAllPokemon() {
+    axios.get('/api/pokemon')
+    .then((results) => {
+      this.setState({pokemonList: results.data})
+    })
+    .catch((err) => {
+      console.error(err);
+    })
+  }
+
+  typeFilter(e) {
+    if (e.target.value !== 'Sort by Type') {
+      axios.get(`/api/pokemon/${e.target.value}`)
+        .then((results) => {
+          this.setState({pokemonList: results.data});
+        })
+        .catch((err) => {
+          console.error(err);
+        })
+    }
+  }
+
+  onNameInput(e) {
+    this.setState({nameInput: e.target.value})
+  }
+
+  onTypeInput(e) {
+    this.setState({typeInput: e.target.value})
+  }
+
+  onImageInput(e) {
+    this.setState({imgInput: e.target.value})
+  }
+
+  onInsert() {
+    axios.post('/api/pokemon', {name: this.state.nameInput, type: this.state.typeInput, img: this.state.imgInput})
+      .then(() => {
+        this.getAllPokemon()
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+  }
+
+  render() {
+    return (
       <div>
-        <h3>Bulbasaur</h3>
-        <img src="http://vignette4.wikia.nocookie.net/nintendo/images/4/43/Bulbasaur.png/revision/latest?cb=20141002083518&path-prefix=en" />
+        <div>
+          <h1>Pokemon!</h1>
+          <button onClick={this.getAllPokemon}>Show All</button>
+          {/* <select id="type" onChange={this.typeFilter}>
+            <option>Sort by Type</option> */}
+            {/* <option >Grass</option>
+            <option>Fire</option>
+            <option>Water</option>
+            <option>Normal</option>
+            <option>Poison</option>
+            <option>Electric</option>
+            <option>Ground</option>
+            <option>Fighting</option>
+            <option>Psychic</option>
+            <option>Rock</option>
+            <option>Ghost</option>
+            <option>Dragon</option> */}
+            <TypesList pokemonList={this.state.pokemonList} typeFilter={this.typeFilter}/>
+          {/* </select><br></br><br></br> */}
+          <label>Name:</label>
+          <input onChange={this.onNameInput}></input>
+          <label>Type:</label>
+          <input onChange={this.onTypeInput}></input>
+          <label>Image URL:</label>
+          <input onChange={this.onImageInput}></input>
+          <button onClick={this.onInsert}>INSERT</button>
+          <PokemonList pokemonList={this.state.pokemonList} />
+        </div>
       </div>
-      <div>
-        <h3>Ivysaur</h3>
-        <img src="http://vignette3.wikia.nocookie.net/nintendo/images/8/86/Ivysaur.png/revision/latest?cb=20141002083450&path-prefix=en" />
-      </div>
-      <div>
-        <h3>Venusaur</h3>
-        <img src="http://vignette2.wikia.nocookie.net/nintendo/images/b/be/Venusaur.png/revision/latest?cb=20141002083423&path-prefix=en" />
-      </div>
-    </div>
-  </div>
-)
+    )
+  }
+}
 
 export default App;
